@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Científica</title>
+<style>
+    /* ===== Estilos básicos ===== */
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f0f0f0;
+    }
+
+    .calculator {
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .display {
+        background: #000;
+        color: #0f0;
+        font-size: 2em;
+        padding: 15px;
+        border-radius: 5px;
+        text-align: right;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-gap: 10px;
+        margin-top: 15px;
+    }
+
+    button {
+        padding: 15px;
+        font-size: 1em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    /* Cores diferentes para tipos de botão */
+    .number { background: #444; color: #fff; }
+    .operator { background: #ff9500; color: #fff; }
+    .function { background: #555; color: #fff; }
+    .clear { background: #f00; color: #fff; }
+    .equals { background: #0a0; color: #fff; }
+
+    button:hover {
+        filter: brightness(1.2);
+    }
+
+    /* Responsivo */
+    @media(max-width: 500px) {
+        .display { font-size: 1.5em; }
+        button { padding: 12px; font-size: 0.9em; }
+    }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+    <!-- Tela de exibição -->
+    <div class="display" id="display">0</div>
+
+    <!-- Teclado -->
+    <div class="buttons">
+        <!-- Funções científicas -->
+        <button class="function" onclick="appendFunction('sqrt')">√</button>
+        <button class="function" onclick="appendFunction('^')">^</button>
+        <button class="function" onclick="appendFunction('sin')">sin</button>
+        <button class="function" onclick="appendFunction('cos')">cos</button>
+        <button class="function" onclick="appendFunction('tan')">tan</button>
+
+        <!-- Números e operadores -->
+        <button class="number" onclick="appendNumber('7')">7</button>
+        <button class="number" onclick="appendNumber('8')">8</button>
+        <button class="number" onclick="appendNumber('9')">9</button>
+        <button class="operator" onclick="appendOperator('/')">/</button>
+        <button class="function" onclick="appendFunction('log')">log</button>
+
+        <button class="number" onclick="appendNumber('4')">4</button>
+        <button class="number" onclick="appendNumber('5')">5</button>
+        <button class="number" onclick="appendNumber('6')">6</button>
+        <button class="operator" onclick="appendOperator('*')">*</button>
+        <button class="function" onclick="appendFunction('ln')">ln</button>
+
+        <button class="number" onclick="appendNumber('1')">1</button>
+        <button class="number" onclick="appendNumber('2')">2</button>
+        <button class="number" onclick="appendNumber('3')">3</button>
+        <button class="operator" onclick="appendOperator('-')">-</button>
+        <button class="function" onclick="appendFunction('!')">!</button>
+
+        <button class="number" onclick="appendNumber('0')">0</button>
+        <button class="function" onclick="appendConstant('π')">π</button>
+        <button class="function" onclick="appendConstant('e')">e</button>
+        <button class="operator" onclick="appendOperator('+')">+</button>
+        <button class="equals" onclick="calculate()">=</button>
+
+        <!-- Limpar e apagar -->
+        <button class="clear" onclick="clearDisplay()">C</button>
+        <button class="function" onclick="deleteLast()">←</button>
+    </div>
+</div>
+
+<script>
+    const display = document.getElementById('display');
+    let current = '';
+
+    /* ===== Funções de atualização ===== */
+    function updateDisplay() {
+        display.textContent = current || '0';
+    }
+
+    function appendNumber(num) {
+        current += num;
+        updateDisplay();
+    }
+
+    function appendOperator(op) {
+        if (current && !isOperator(current.slice(-1))) {
+            current += op;
+        }
+        updateDisplay();
+    }
+
+    function appendFunction(fn) {
+        current += fn + '(';
+        updateDisplay();
+    }
+
+    function appendConstant(constant) {
+        if (constant === 'π') current += Math.PI;
+        if (constant === 'e') current += Math.E;
+        updateDisplay();
+    }
+
+    function clearDisplay() {
+        current = '';
+        updateDisplay();
+    }
+
+    function deleteLast() {
+        current = current.slice(0, -1);
+        updateDisplay();
+    }
+
+    function isOperator(char) {
+        return ['+', '-', '*', '/', '^'].includes(char);
+    }
+
+    /* ===== Função principal de cálculo ===== */
+    function calculate() {
+        try {
+            let expression = current
+                .replace(/√/g, 'Math.sqrt')
+                .replace(/sin\(/g, 'Math.sin(degToRad(')
+                .replace(/cos\(/g, 'Math.cos(degToRad(')
+                .replace(/tan\(/g, 'Math.tan(degToRad(')
+                .replace(/log\(/g, 'Math.log10(')
+                .replace(/ln\(/g, 'Math.log(')
+                .replace(/\^/g, '**')
+                .replace(/!/g, 'factorialReplacement()'); // placeholder
+
+            // Calcular fatorial manualmente
+            expression = expression.replace(/factorialReplacement\(\)/g, 'factorialEval()');
+
+            // Função auxiliar para fatorial
+            function factorialEval() {
+                let nums = current.match(/\d+!/g);
+                if (!nums) return 0;
+                let result = nums.map(n => factorial(parseInt(n)));
+                return result[result.length - 1];
+            }
+
+            function factorial(n) {
+                if (n < 0) return NaN;
+                if (n === 0 || n === 1) return 1;
+                return n * factorial(n - 1);
+            }
+
+            function degToRad(deg) {
+                return deg * (Math.PI / 180);
+            }
+
+            const result = eval(expression);
+            current = result.toString();
+            updateDisplay();
+        } catch (e) {
+            display.textContent = 'Erro';
+            current = '';
+        }
+    }
+</script>
+
+</body>
+</html>
